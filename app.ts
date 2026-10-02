@@ -3,8 +3,10 @@ import cors from 'cors';
 import { configDotenv } from 'dotenv';
 import express, { type Express, type Request, type Response } from 'express';
 import { readFile, writeFile } from 'fs/promises';
+import setupProject from './setup.ts';
 
 configDotenv();
+setupProject();
 const app: Express = express();
 const upload = multer({ storage: multer.memoryStorage() });
 app.use(cors());
