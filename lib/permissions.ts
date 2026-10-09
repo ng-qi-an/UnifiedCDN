@@ -3,7 +3,8 @@ import { adminAc, defaultStatements, userAc } from "better-auth/plugins/admin/ac
 
 const statement = { 
     ...defaultStatements,
-    applications: ["create", "update", "delete", "viewAll"], 
+    applications: ["request", "create", "update", "delete", "viewAll"], 
+    databases: ["create", "update", "delete", "viewAll", "share"],
 } as const; 
 
 export const ac = createAccessControl(statement); 
@@ -14,16 +15,18 @@ export const viewOnlyRole = ac.newRole({
 
 export const userRole = ac.newRole({
     ...userAc.statements,
-    applications: ["create", "update", "delete"]
+    applications: ["request", "update", "delete"]
 })
 
 export const adminRole = ac.newRole({
     ...adminAc.statements,
-    applications: [...userRole.statements.applications, "viewAll"]
+    applications: [...userRole.statements.applications, "create", "viewAll"],
+    databases: [...statement.databases]
 })
 
 export const superAdminRole = ac.newRole({
     ...adminAc.statements,
     user: [...adminAc.statements.user, "impersonate-admins"],
-    applications: [...adminRole.statements.applications]
+    applications: [...adminRole.statements.applications],
+    databases: [...adminRole.statements.databases]
 })

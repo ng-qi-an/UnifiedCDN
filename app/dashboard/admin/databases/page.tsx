@@ -4,17 +4,17 @@ import DashboardHeader from "@/components/navigation/DashboardHeader";
 import DashboardSectionHeader from "@/components/navigation/DashboardSectionHeader";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import ApplicationsRendered from "./rendered";
+import DatabasesRendered from "./rendered";
 import { Suspense } from "react";
 import Link from "next/link";
 
 export default function ApplicationsPage(){
     return <Dashboard>
-        <DashboardHeader breadcrumbs={[{name: "Applications", href: "/dashboard/applications"}]}/>
+        <DashboardHeader breadcrumbs={[{name: "Databases"}]}/>
         <DashboardBody>
-            <DashboardSectionHeader title="Applications" description="View your applications and their configurations." actionRender={<Button size="sm" nativeButton={false} render={<Link href="/dashboard/applications/create"/>}><Plus/><span>Create</span><span className="md:block hidden">New</span></Button>}/>
+            <DashboardSectionHeader title="Databases" description="View your databases and their configurations." actionRender={<Button size="sm" nativeButton={false} render={<Link href="/dashboard/admin/databases/create"/>}><Plus/><span>Create</span><span className="md:block hidden">New</span></Button>}/>
             <Suspense>
-                <ApplicationsRendered/>
+                <DatabasesRendered/>
             </Suspense>
         </DashboardBody>
     </Dashboard>

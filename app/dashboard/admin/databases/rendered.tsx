@@ -4,10 +4,10 @@ import { db } from "@/lib/db";
 import { userHasPermissionServer } from "@/lib/permissionHelpers";
 import { applications } from "@/lib/schema/schema";
 import { eq } from "drizzle-orm";
-import { AppWindowMac } from "lucide-react";
+import { AppWindowMac, Database } from "lucide-react";
 import Link from "next/link";
 
-export default async function ApplicationsRendered(){
+export default async function DatabasesRendered(){
     const data = await userHasPermissionServer({applications: ["viewAll"]});
     const fetchedApps = await db.select().from(applications).where(!data.isAuthorised ? eq(applications.ownerId, data.user.id) : undefined);
     return fetchedApps.length > 0 ? <div className="grid grid-cols-4 gap-4 p-4">
@@ -25,13 +25,13 @@ export default async function ApplicationsRendered(){
     </div> : <Empty className="border mt-4 h-full">
         <EmptyHeader>
             <EmptyMedia variant="icon">
-                <AppWindowMac/>
+                <Database/>
             </EmptyMedia>
-            <EmptyTitle>No applications yet</EmptyTitle>
-            <EmptyDescription>You havent created an application. Get started by creating one below.</EmptyDescription>
+            <EmptyTitle>No databases yet</EmptyTitle>
+            <EmptyDescription>You havent created a database yet. Get started by creating one below.</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-            <Button nativeButton={false} render={<Link href="/dashboard/applications/create"/>}>Create Application</Button>
+            <Button nativeButton={false} render={<Link href="/dashboard/admin/databases/create"/>}>Create Database</Button>
         </EmptyContent>
     </Empty>;
 }

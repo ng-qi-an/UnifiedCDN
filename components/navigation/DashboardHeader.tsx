@@ -8,14 +8,14 @@ import Link from "next/link";
 export default function DashboardHeader({breadcrumbs, actionRender}: {breadcrumbs: {name?: string, href?: string, component?: string}[], actionRender?: React.ReactNode}){
     return <div className="flex items-center h-12 w-full border-b px-2">
         <SidebarTrigger/>
-        <Breadcrumb>
+        <Breadcrumb className="ml-2">
             <BreadcrumbList>
                 {breadcrumbs.map((breadcrumb, index) => {
                     const isLast = index === breadcrumbs.length - 1;
                     return <Fragment key={index}>
                         <BreadcrumbItem>
-                            {breadcrumb.name ? (isLast ?
-                                <BreadcrumbPage>{breadcrumb.name}</BreadcrumbPage>
+                            {breadcrumb.name ? (isLast || !breadcrumb.href ?
+                                <BreadcrumbPage className={!isLast ? "text-muted-foreground" : ""}>{breadcrumb.name}</BreadcrumbPage>
                             :
                                 <BreadcrumbLink render={<Link href={breadcrumb.href || "#"}/>}>{breadcrumb.name}</BreadcrumbLink>
                             ) : breadcrumb.component &&

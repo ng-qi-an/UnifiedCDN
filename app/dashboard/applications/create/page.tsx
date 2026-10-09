@@ -3,18 +3,19 @@ import DashboardBody from "@/components/navigation/DashboardBody";
 import DashboardHeader from "@/components/navigation/DashboardHeader";
 import DashboardSectionHeader from "@/components/navigation/DashboardSectionHeader";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import ApplicationsRendered from "./rendered";
+import { ChevronLeft, Plus } from "lucide-react";
+import CreateApplicationsRendered from "./rendered";
 import { Suspense } from "react";
 import Link from "next/link";
+import { Separator } from "@/components/ui/separator";
 
 export default function ApplicationsPage(){
     return <Dashboard>
-        <DashboardHeader breadcrumbs={[{name: "Applications", href: "/dashboard/applications"}]}/>
+        <DashboardHeader breadcrumbs={[{name: "Applications", href: "/dashboard/applications"}, {name: "Create application"}]}/>
         <DashboardBody>
-            <DashboardSectionHeader title="Applications" description="View your applications and their configurations." actionRender={<Button size="sm" nativeButton={false} render={<Link href="/dashboard/applications/create"/>}><Plus/><span>Create</span><span className="md:block hidden">New</span></Button>}/>
+            <DashboardSectionHeader title="Create an application" beforeHeadingRender={<Button variant="ghost" size="icon-sm" nativeButton={false} render={<Link href="/dashboard/applications"/>}><ChevronLeft/></Button>}/>
             <Suspense>
-                <ApplicationsRendered/>
+                <CreateApplicationsRendered/>
             </Suspense>
         </DashboardBody>
     </Dashboard>

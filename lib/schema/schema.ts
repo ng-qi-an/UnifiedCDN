@@ -13,6 +13,7 @@ export const databases = pgTable("databases", {
     createdAt: date("created_at").defaultNow().notNull(),
     updatedAt: date("updated_at").defaultNow().notNull(),
 });
+export type Database = typeof databases.$inferSelect;
 
 export const applications = pgTable("applications", {
     id: text("id").primaryKey(),
@@ -20,7 +21,9 @@ export const applications = pgTable("applications", {
     ownerId: text("owner_id").notNull().references(() => user.id, { onDelete: "cascade" }),
     databaseId: text("database_id").notNull().references(() => databases.id, { onDelete: "cascade" }),
     limit: integer("limit").notNull(),
+    status: text("status").notNull(),
     alerts: jsonb("alerts").$type<any[]>().notNull(),
     createdAt: date("created_at").defaultNow().notNull(),
     updatedAt: date("updated_at").defaultNow().notNull(),
 })
+export type Applications = typeof applications.$inferSelect;
