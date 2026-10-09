@@ -11,10 +11,10 @@ export default async function Layout({children}: {children: React.ReactNode}) {
         headers: await headers()
     });
     if (session){
-        return <div className="flex">
+        return <div className="flex h-full">
             <SidebarProvider>
                 <DashboardSidebar/>
-                <main>
+                <main className="w-full h-screen">
                     {children} 
                 </main>
             </SidebarProvider>

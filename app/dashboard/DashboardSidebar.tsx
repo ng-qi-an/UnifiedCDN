@@ -4,6 +4,26 @@ import { AppWindowMac, Book, Cloud, Database, ExternalLink, Home, Key, Logs, Sea
 import Link from "next/link";
 import { Suspense } from "react";
 import UserDropdown from "./UserDropdown";
+import DashboardSidebarLink from "./DashboardSidebarLink";
+
+const links = {
+    navigation: [
+        {name: "Dashboard", href: "/dashboard", icon: <Home/>},
+        {name: "Applications", href: "/dashboard/applications", icon: <AppWindowMac/>},
+        {name: "API Keys", href: "/dashboard/api-keys", icon: <Key/>},
+        {name: "Logs", href: "/dashboard/logs", icon: <Logs/>},
+    ],
+    management: [
+        {name: "Users", href: "/dashboard/admin/users", icon: <Users/>},
+        {name: "Databases", href: "/dashboard/admin/databases", icon: <Database/>},
+        {name: "Audit", href: "/dashboard/admin/audit", icon: <Shield/>},
+        {name: "Settings", href: "/dashboard/admin/settings", icon: <Settings/>},
+    ],
+    help: [
+        {name: "Documentation", href: "/", icon: <Book/>},
+        {name: "Github", href: "/", icon: <ExternalLink/>},
+    ]
+}
 
 export default async function DashboardSidebar() {
     return <Sidebar>
@@ -11,7 +31,7 @@ export default async function DashboardSidebar() {
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton className="data-[slot=sidebar-menu-button]:p-2! mt-1 hover:bg-transparent active:bg-transparent">
-                        <Cloud className="size-5.5!" fill={"var(--foreground)"}/>
+                        <Cloud className="size-5.5!"/>
                         <span className="text-base font-semibold ml-1">Unified CDN</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -31,77 +51,18 @@ export default async function DashboardSidebar() {
             </SidebarGroup>
         </SidebarHeader>
         <SidebarContent>
-            <SidebarGroup>
-                <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+            {Object.values(links).map((group, index: number) => {
+              return <SidebarGroup key={index}>
+                <SidebarGroupLabel>{Object.keys(links)[index]}</SidebarGroupLabel>
                 <SidebarGroupContent>
                     <SidebarMenu>
-                        <Link href="/dashboard">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton isActive><Home/>Dashboard</SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </Link>
-                        <Link href="/dashboard/applications">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton><AppWindowMac/>Applications</SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </Link>
-                        <Link href="/dashboard/api-keys">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton><Key/>API Keys</SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </Link>
-                        <Link href="/dashboard/logs">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton><Logs/>Logs</SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </Link>
+                        {group.map((link, index: number) => {
+                            return <DashboardSidebarLink key={index} href={link.href} Icon={link.icon} name={link.name}/>
+                        })}
                     </SidebarMenu>
                 </SidebarGroupContent>
-            </SidebarGroup>
-            <SidebarGroup>
-                <SidebarGroupLabel>Management</SidebarGroupLabel>
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        <Link href="/dashboard/admin/users">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton><Users/>Users</SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </Link>
-                        <Link href="/dashboard/admin/databases">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton><Database/>Databases</SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </Link>
-                        <Link href="/dashboard/admin/audit">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton><Shield/>Audit</SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </Link>
-                        <Link href="/dashboard/admin/settings">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton><Settings/>Settings</SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </Link>
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
-            <SidebarGroup>
-                <SidebarGroupLabel>Help</SidebarGroupLabel>
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        <Link href="/">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton><Book/>Documentation</SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </Link>
-                        <Link href="/">
-                            <SidebarMenuItem>
-                                <SidebarMenuButton><ExternalLink/>Github</SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </Link>
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
+              </SidebarGroup>  
+            })}
         </SidebarContent>
         <SidebarFooter>
             <SidebarMenu>

@@ -1,15 +1,17 @@
 'use client';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { toast } from "@/components/ui/toast";
 import { authClient } from "@/lib/auth-client";
-import { Bell, ChevronsUpDown, LogOut, Settings } from "lucide-react";
+import { Bell, Check, ChevronsUpDown, LaptopMinimal, LogOut, Moon, Settings, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 
 export default function UserDropdown(){
     const router = useRouter();
     const { data } = authClient.useSession();
+    const { theme, setTheme } = useTheme();
     if (!data || !data.user) return null;
     const user = data.user;
     return <DropdownMenu>
@@ -39,6 +41,14 @@ export default function UserDropdown(){
             <DropdownMenuLabel>Account</DropdownMenuLabel>
             <DropdownMenuItem><Settings />Settings</DropdownMenuItem>
             <DropdownMenuItem><Bell />Notifications</DropdownMenuItem>
+            <DropdownMenuSub>
+                <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => setTheme("light")}>{theme == "light" ? <Check/> : <Sun/>} Light</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("dark")}>{theme == "dark" ? <Check/> : <Moon/>} Dark</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("system")}>{theme == "system" ? <Check/> : <LaptopMinimal/>} System</DropdownMenuItem>
+                </DropdownMenuSubContent>
+            </DropdownMenuSub>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={async()=> await authClient.signOut({
