@@ -16,8 +16,8 @@ export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createP
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [databaseId, setDatabaseId] = useState("");
-    return <div className="grid grid-cols-1 lg:grid-cols-2 flex-1 min-h-0 w-full gap-4">
-        <form className="w-full h-full flex flex-col min-h-0 pt-4">
+    return <div className="grid grid-cols-1 lg:grid-cols-2 flex-1 min-h-0 w-full gap-4 pt-4">
+        <form className="w-full h-full flex flex-col min-h-0">
             <Link href={dbCreatePerms?.isAuthorised ? "/dashboard/admin/databases/create" : ""}>
                 <Alert variant="destructive" className={`mb-4 ${dbCreatePerms?.isAuthorised ? "cursor-pointer" : "cursor-default"}`}>
                     <OctagonAlert/>

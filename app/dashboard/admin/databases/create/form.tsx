@@ -11,6 +11,8 @@ import { Database } from "@/lib/schema/schema";
 import { AppWindowMac, ArrowDown, ArrowRight, Cloud, DatabaseIcon, LaptopMinimal, OctagonAlert } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import ProviderSelector from "./ProviderSelector";
+import { availableServices } from "@/lib/services";
 
 export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDatabases: Partial<Database>[], createPerms: any}){
     'use client';
@@ -19,10 +21,12 @@ export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDat
     const [limitUnit, setLimitUnit] = useState("gb");
     const [limitAlert, setLimitAlert] = useState("80");
     const [visibility, setVisibility] = useState("private");
+    const [provider, setProvider] = useState("cloudflare-r2");
+    const [key, setKey] = useState("");
     return <div className="grid grid-cols-1 flex-1 min-h-0 w-full gap-4">
         <form className="w-full h-full flex flex-col min-h-0 pt-4">
-            <div className="w-full h-full overflow-auto flex flex-col lg:grid lg:grid-cols-2 gap-4 p-1">
-                <Card className="w-full h-max lg:h-full">
+            <div className="w-full h-full overflow-auto flex flex-col xl:grid xl:grid-cols-2 gap-1 p-1">
+                <Card className="w-full h-max xl:h-full">
                     <CardHeader>
                         <CardTitle>General</CardTitle>
                         <CardDescription>Information about your new database</CardDescription>
@@ -32,7 +36,7 @@ export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDat
                             <Field>
                                 <FieldLabel>Name</FieldLabel>
                                 <Input type="text" value={name} onChange={(e)=> setName(e.target.value)}/>
-                                <FieldDescription>The name of your application. Must be unique.</FieldDescription>
+                                <FieldDescription>The name of your database. Must be unique.</FieldDescription>
                             </Field>
                             <Field>
                                 <FieldLabel>Visibility</FieldLabel>
@@ -77,23 +81,37 @@ export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDat
                         </FieldGroup>
                     </CardContent>
                 </Card>
-                <Card className="w-full h-max lg:h-full">
-                    <CardHeader>
-                        <CardTitle>Service</CardTitle>
-                        <CardDescription>Connect your database to a Content Delivery Network (CDN)</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <FieldGroup>
-                            <Field>
-                                <FieldLabel>Provider</FieldLabel>
-                            </Field>
-                        </FieldGroup>
-                    </CardContent>
-                </Card>
+                <div className="w-full h-max xl:h-full flex flex-col">
+                    <Card className="w-full h-max xl:h-full">
+                        <CardHeader>
+                            <CardTitle>Service</CardTitle>
+                            <CardDescription>Connect your database to a Content Delivery Network (CDN)</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <FieldGroup>
+                                <Field>
+                                    <FieldLabel>Provider</FieldLabel>
+                                    <FieldDescription>Choose wisely. This cannot be changed later.</FieldDescription>
+                                    <ProviderSelector value={provider} onChange={(value) => setProvider(value)} />
+                                </Field>
+                                <Field>
+                                    <FieldLabel>Key</FieldLabel>
+                                    <Input type="text" value={key} onChange={(e)=> setKey(e.target.value)}/>
+                                    <FieldDescription>Input your API key obtained from <a href={availableServices.find(s => s.id === provider)?.href} target="_blank" rel="noopener noreferrer">{availableServices.find(s => s.id === provider)?.name}</a>.</FieldDescription>
+                                </Field>
+                            </FieldGroup>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-            <Button className="w-full mt-4" type="submit">
-                Create database
-            </Button>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 mt-2">
+                <Button className="w-full" type="submit" variant="secondary">
+                    Cancel
+                </Button>
+                <Button className="w-full" type="submit">
+                    Create database
+                </Button>
+            </div>
         </form>
     </div>
 }

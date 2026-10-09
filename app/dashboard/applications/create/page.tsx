@@ -3,11 +3,10 @@ import DashboardBody from "@/components/navigation/DashboardBody";
 import DashboardHeader from "@/components/navigation/DashboardHeader";
 import DashboardSectionHeader from "@/components/navigation/DashboardSectionHeader";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Plus } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import CreateApplicationsRendered from "./rendered";
 import { Suspense } from "react";
 import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
 
 export default function ApplicationsPage(){
     return <Dashboard>
