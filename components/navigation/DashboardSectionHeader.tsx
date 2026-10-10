@@ -5,11 +5,11 @@ export default function DashboardSectionHeader({title, description, beforeHeadin
     return <div className={cn("w-full flex xl:pt-2 flex-col sm:flex-row sm:items-center", className)}>
         <div className="flex items-center">
             {beforeHeadingRender}
-            <div className="flex flex-col mr-4 ml-2">
+            <div className={`flex flex-col mr-4 ${beforeHeadingRender && "ml-2"}`}>
                 <h1 className="font-heading text-lg font-semibold tracking-wider uppercase">{title}</h1>
                 {description && <p className="text-muted-foreground mt-1">{description}</p>}
             </div>
         </div>
-        {actionRender && <div className="ml-auto w-full sm:w-max">{actionRender}</div>}
+        {actionRender && <div className="ml-auto mt-4 sm:mt-0 w-full flex gap-2 sm:w-max">{actionRender}</div>}
     </div>
 }

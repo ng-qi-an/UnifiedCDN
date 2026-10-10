@@ -1,31 +1,93 @@
 'use client';
-import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSeparator, FieldSet } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Database } from "@/lib/schema/schema";
-import { AppWindowMac, ArrowDown, ArrowRight, Cloud, DatabaseIcon, LaptopMinimal, OctagonAlert } from "lucide-react";
+import { Database } from "@/lib/schema/schemaTypes";
+import { ExternalLink, OctagonAlert } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import ProviderSelector from "./ProviderSelector";
 import { availableServices } from "@/lib/services";
+import { Spinner } from "@/components/ui/spinner";
+import { toast } from "@/components/ui/toast";
+import { useRouter } from "next/navigation";
 
 export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDatabases: Partial<Database>[], createPerms: any}){
-    'use client';
+    const router = useRouter();
     const [name, setName] = useState("");
     const [limit, setLimit] = useState("20");
     const [limitUnit, setLimitUnit] = useState("gb");
-    const [limitAlert, setLimitAlert] = useState("80");
+    const [usageAlert, setUsageAlert] = useState("80");
     const [visibility, setVisibility] = useState("private");
     const [provider, setProvider] = useState("cloudflare-r2");
-    const [key, setKey] = useState("");
-    return <div className="grid grid-cols-1 flex-1 min-h-0 w-full gap-4">
-        <form className="w-full h-full flex flex-col min-h-0 pt-4">
-            <div className="w-full h-full overflow-auto flex flex-col xl:grid xl:grid-cols-2 gap-1 p-1">
+    // This for HC CDN
+    const [apiKey, setApiKey] = useState("");
+    // This for R2 / S3.
+    const [accessKeyId, setAccessKeyId] = useState("");
+    const [secretAccessKey, setSecretAccessKey] = useState("");
+    const [accessUrl, setAccessUrl] = useState("");
+    const [bucketName, setBucketName] = useState("");
+    // submiting states
+    const [isSubmitting, setIsSubmitting] = useState(false); 
+    const [submissionError, setSubmissionError] = useState({title: "", message: ""});
+    return <div className="grid grid-cols-1 flex-1 min-h-0 w-full pt-4 gap-2">
+        {submissionError.title && <Alert variant="destructive" className="">
+            <OctagonAlert/>
+            <AlertTitle>{submissionError.title}</AlertTitle>
+            <AlertDescription>{submissionError.message}</AlertDescription>
+        </Alert>}
+        <form className="w-full h-full flex flex-col min-h-0" onSubmit={async(e)=>{
+            e.preventDefault()
+            if (!name || !limit || !limitUnit || !usageAlert || !visibility || !provider || (provider == "cloudflare-r2" && (!accessUrl || !accessKeyId || !secretAccessKey || !bucketName)) || (provider == "hackclub-cdn" && !apiKey)){
+                setSubmissionError({title: "Missing required fields", message: "Please fill in all required fields before submitting."});
+                return;
+            }
+            if (fetchedDatabases.find(db => db.name == name)){
+                return;
+            }
+            setIsSubmitting(true);
+            setSubmissionError({title: "", message: ""});
+            const response = await fetch("/api/dashboard/databases/create", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    provider: provider,
+                    keys: provider == "cloudflare-r2" ? {
+                        accessUrl: accessUrl,
+                        accessKeyId: accessKeyId,
+                        secretAccessKey: secretAccessKey,
+                        bucketName: bucketName
+                    } : provider == "hackclub-cdn" ? {
+                        apiKey: apiKey
+                    } : {},
+                    name,
+                    limit: Number(limit) * (limitUnit == "gb" ? 1000000000 : limitUnit == "mb" ? 1000000 : 1000),
+                    usageAlert: Number(usageAlert),
+                    visibility,
+                })
+            });
+            const responseData = await response.json();
+            if (!response.ok){
+                setIsSubmitting(false);
+                console.log(responseData);
+                return setSubmissionError({title: responseData.error, message: responseData.message || "An unknown error occurred while testing the database connection."});
+            }
+            setIsSubmitting(false);
+            toast.add({
+                title: "Database created",
+                description: "Your database has been created successfully.",
+                type: "success",
+            });
+            router.push("/dashboard/admin/databases/"+responseData.id);
+        }}>
+            <div className="w-full h-full overflow-auto xl:grid xl:grid-cols-2 gap-1 space-y-2 xl:space-y-0 p-1">
                 <Card className="w-full h-max xl:h-full">
                     <CardHeader>
                         <CardTitle>General</CardTitle>
@@ -35,12 +97,12 @@ export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDat
                         <FieldGroup>
                             <Field>
                                 <FieldLabel>Name</FieldLabel>
-                                <Input type="text" value={name} onChange={(e)=> setName(e.target.value)}/>
-                                <FieldDescription>The name of your database. Must be unique.</FieldDescription>
+                                <Input type="text" value={name} onChange={(e)=> setName(e.target.value)} required/>
+                                {fetchedDatabases.find((x)=> x.name == name) ? <FieldError>A database with this name already exists.</FieldError>: <FieldDescription>The name of your database. Must be unique.</FieldDescription>}
                             </Field>
                             <Field>
                                 <FieldLabel>Visibility</FieldLabel>
-                                <Select items={[{label: "Public", value: "public"}, {label: "Private", value: "private"}]} onValueChange={(value)=> setVisibility(value!)} value={visibility}>
+                                <Select items={[{label: "Public", value: "public"}, {label: "Private", value: "private"}]} onValueChange={(value)=> setVisibility(value!)} value={visibility} required>
                                     <SelectTrigger>
                                         <SelectValue/>
                                     </SelectTrigger>
@@ -72,17 +134,17 @@ export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDat
                             <Field>
                                 <FieldLabel>Limit alert</FieldLabel>
                                 <div className="flex items-center">
-                                    <Slider max={100} step={1} value={Number(limitAlert)} onValueChange={(value)=> setLimitAlert(value.toString())} />
-                                    <Input value={limitAlert} onChange={(e)=> setLimitAlert(Math.max(0, Math.min(Number(e.target.value) || 0, 100)).toString() || "0")} className="w-14 text-center mx-2"/>
+                                    <Slider max={100} step={1} value={Number(usageAlert)} onValueChange={(value)=> setUsageAlert(value.toString())} />
+                                    <Input value={usageAlert} onChange={(e)=> setUsageAlert(Math.max(0, Math.min(Number(e.target.value) || 0, 100)).toString() || "0")} className="w-14 text-center mx-2"/>
                                     %
                                 </div>
-                                <FieldDescription>{Number(limit) == 0 ? "You will not receive any alerts." : `You will recieve alerts when the database exceeds ${Math.round((Number(limitAlert) / 100) * Number(limit))} ${limitUnit.toUpperCase()}.`}</FieldDescription>
+                                <FieldDescription>{Number(limit) == 0 ? "You will not receive any alerts." : `You will recieve alerts when the database exceeds ${Math.round((Number(usageAlert) / 100) * Number(limit))} ${limitUnit.toUpperCase()}.`}</FieldDescription>
                             </Field>
                         </FieldGroup>
                     </CardContent>
                 </Card>
-                <div className="w-full h-max xl:h-full flex flex-col">
-                    <Card className="w-full h-max xl:h-full">
+                <div className="w-full h-max xl:h-full xl:overflow-auto xl:border dark:xl:border-none">
+                    <Card className="w-full h-max xl:h-full xl:overflow-auto">
                         <CardHeader>
                             <CardTitle>Service</CardTitle>
                             <CardDescription>Connect your database to a Content Delivery Network (CDN)</CardDescription>
@@ -93,23 +155,50 @@ export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDat
                                     <FieldLabel>Provider</FieldLabel>
                                     <FieldDescription>Choose wisely. This cannot be changed later.</FieldDescription>
                                     <ProviderSelector value={provider} onChange={(value) => setProvider(value)} />
+                                    <FieldDescription className="flex gap-1">Need help setting up? <a href={availableServices.find((s) => s.id === provider)?.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">Open the docs <ExternalLink className="size-4"/></a></FieldDescription>
                                 </Field>
-                                <Field>
-                                    <FieldLabel>Key</FieldLabel>
-                                    <Input type="text" value={key} onChange={(e)=> setKey(e.target.value)}/>
-                                    <FieldDescription>Input your API key obtained from <a href={availableServices.find(s => s.id === provider)?.href} target="_blank" rel="noopener noreferrer">{availableServices.find(s => s.id === provider)?.name}</a>.</FieldDescription>
-                                </Field>
+                                {provider == "cloudflare-r2" ? <>
+                                    <Field>
+                                        <FieldLabel>Access URL</FieldLabel>
+                                        <Input type="url" value={accessUrl} onChange={(e)=> setAccessUrl(e.target.value)} placeholder={"https://[...].r2.cloudflarestorage.com"} required />
+                                        <FieldDescription>This should be a link, not an API key. You should use the S3 configuration.</FieldDescription>
+                                    </Field>
+                                    <Field>
+                                        <FieldLabel>Access Key ID</FieldLabel>
+                                        <Input type="text" value={accessKeyId} onChange={(e)=> setAccessKeyId(e.target.value)} required/>
+                                        <FieldDescription>This is typically shorter than your secret key.</FieldDescription>
+                                    </Field>
+                                    <Field>
+                                        <FieldLabel>Secret Access Key</FieldLabel>
+                                        <Input type="text" value={secretAccessKey} onChange={(e)=> setSecretAccessKey(e.target.value)} required/>
+                                        <FieldDescription>This is typically longer than the Access Key ID.</FieldDescription>
+                                    </Field>
+                                    <Field>
+                                        <FieldLabel>Bucket Name</FieldLabel>
+                                        <Input type="text" value={bucketName} onChange={(e)=> setBucketName(e.target.value)} required/>
+                                        <FieldDescription>The bucket you want to use. We'll create one if it doesn't exist.</FieldDescription>
+                                    </Field>
+                                </> : provider == "hackclub-cdn" && <>
+                                    <Field>
+                                        <FieldLabel>API Key</FieldLabel>
+                                        <Input type="text" value={apiKey} onChange={(e)=> setApiKey(e.target.value)} required/>
+                                        <FieldDescription>This is the API key you generated in your Hack Club CDN account.</FieldDescription>
+                                    </Field>
+                                </>
+                                }
                             </FieldGroup>
                         </CardContent>
                     </Card>
                 </div>
             </div>
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 mt-2">
-                <Button className="w-full" type="submit" variant="secondary">
-                    Cancel
-                </Button>
-                <Button className="w-full" type="submit">
-                    Create database
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                <Link href="/dashboard/admin/databases" className="w-full hidden md:block">
+                    <Button disabled={isSubmitting} className="w-full" type="button" variant="secondary">
+                        Cancel
+                    </Button>
+                </Link>
+                <Button disabled={isSubmitting} className="w-full" type="submit">
+                    Create Database {isSubmitting && <Spinner/>}
                 </Button>
             </div>
         </form>

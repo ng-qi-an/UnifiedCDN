@@ -14,10 +14,10 @@ export const availableServices: Service[] = [
         id: "cloudflare-r2",
         icon: SiCloudflare,
         hex: SiCloudflareHex,
-        href: "https://www.cloudflare.com/products/r2/"
+        href: "https://developers.cloudflare.com/r2/get-started/s3/"
     },
     {
-        name: "Hackclub CDN",
+        name: "Hack Club CDN",
         id: "hackclub-cdn",
         icon: SiHackclub,
         hex: SiHackclubHex,

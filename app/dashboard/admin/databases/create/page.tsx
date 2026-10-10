@@ -12,7 +12,7 @@ export default function ApplicationsPage(){
     return <Dashboard>
         <DashboardHeader breadcrumbs={[{name: "Databases", href: "/dashboard/admin/databases"}, {name: "Create database"}]}/>
         <DashboardBody>
-            <DashboardSectionHeader title="Create a database" beforeHeadingRender={<Button variant="ghost" size="icon-sm" nativeButton={false} render={<Link href="/dashboard/admin/databases"/>}><ChevronLeft/></Button>}/>
+            <DashboardSectionHeader title="Create a database" beforeHeadingRender={<div className="block md:hidden"><Button variant="ghost" size="icon-sm" nativeButton={false} render={<Link href="/dashboard/admin/databases"/>}><ChevronLeft/></Button></div>}/>
             <Suspense>
                 <CreateDatabasesRendered/>
             </Suspense>

@@ -7,14 +7,19 @@ import { Plus } from "lucide-react";
 import DatabasesRendered from "./rendered";
 import { Suspense } from "react";
 import Link from "next/link";
+import DashboardViewLayoutSwitch from "@/components/navigation/DashboardViewLayoutSwitch";
 
-export default function ApplicationsPage(){
+export default function ApplicationsPage({searchParams}: {searchParams: Promise<{layout?: string | undefined}>}){
     return <Dashboard>
         <DashboardHeader breadcrumbs={[{name: "Databases"}]}/>
         <DashboardBody>
-            <DashboardSectionHeader title="Databases" description="View your databases and their configurations." actionRender={<Button size="sm" nativeButton={false} render={<Link href="/dashboard/admin/databases/create"/>}><Plus/><span>Create</span><span className="md:block hidden">New</span></Button>}/>
+            <DashboardSectionHeader title="Databases" description="View your databases and their configurations." actionRender={<>
+                <DashboardViewLayoutSwitch/>
+                <div className="flex-1 sm:hidden"/>
+                <Button size="sm" className="h-10" nativeButton={false} render={<Link href="/dashboard/admin/databases/create"/>}><Plus/><span>Create</span><span className="md:block hidden">New</span></Button>
+            </>}/>
             <Suspense>
-                <DatabasesRendered/>
+                <DatabasesRendered searchParams={searchParams}/>
             </Suspense>
         </DashboardBody>
     </Dashboard>

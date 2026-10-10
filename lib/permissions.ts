@@ -21,12 +21,12 @@ export const userRole = ac.newRole({
 export const adminRole = ac.newRole({
     ...adminAc.statements,
     applications: [...userRole.statements.applications, "create", "viewAll"],
-    databases: [...statement.databases]
+    databases: ["create", "update", "delete"]
 })
 
 export const superAdminRole = ac.newRole({
     ...adminAc.statements,
     user: [...adminAc.statements.user, "impersonate-admins"],
-    applications: [...adminRole.statements.applications],
-    databases: [...adminRole.statements.databases]
+    applications: [...statement.applications],
+    databases: [...statement.databases]
 })
