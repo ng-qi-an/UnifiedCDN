@@ -15,12 +15,13 @@ import { availableServices } from "@/lib/services";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "@/components/ui/toast";
 import { useRouter } from "next/navigation";
+import { convertUnit, Unit } from "@/lib/unitConverter";
 
 export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDatabases: Partial<Database>[], createPerms: any}){
     const router = useRouter();
     const [name, setName] = useState("");
     const [limit, setLimit] = useState("20");
-    const [limitUnit, setLimitUnit] = useState("gb");
+    const [limitUnit, setLimitUnit] = useState<Unit>("gb");
     const [usageAlert, setUsageAlert] = useState("80");
     const [visibility, setVisibility] = useState("private");
     const [provider, setProvider] = useState("cloudflare-r2");
@@ -68,7 +69,7 @@ export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDat
                         apiKey: apiKey
                     } : {},
                     name,
-                    limit: Number(limit) * (limitUnit == "gb" ? 1000000000 : limitUnit == "mb" ? 1000000 : 1000),
+                    limit: convertUnit(Number(limit), limitUnit, "b"),
                     usageAlert: Number(usageAlert),
                     visibility,
                 })

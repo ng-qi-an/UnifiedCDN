@@ -1,25 +1,81 @@
 'use client';
 import DotField from "@/components/DotField";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSeparator, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/components/ui/toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import UsageBar from "@/components/UsageBar";
 import { Database } from "@/lib/schema/schemaTypes";
-import { AppWindowMac, ArrowDown, ArrowRight, Cloud, DatabaseIcon, LaptopMinimal, OctagonAlert } from "lucide-react";
+import { availableServices } from "@/lib/services";
+import { AppWindowMac, ArrowDown, ArrowRight, Cloud, DatabaseIcon, Eye, LaptopMinimal, Lock, OctagonAlert, User } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createPerms, requestPerms}: {dbCreatePerms?: any, fetchedDatabases: Partial<Database>[], createPerms: any, requestPerms: any}){
+export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createPerms, requestPerms}: {dbCreatePerms?: any, fetchedDatabases: Partial<Database & {owner: {name: string} | null, files: {size: number}[] | null}>[], createPerms: any, requestPerms: any}){
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [databaseId, setDatabaseId] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submissionError, setSubmissionError] = useState({title: "", message: ""});
+    const router = useRouter();
     const { resolvedTheme } = useTheme();
+    const personalDbs = fetchedDatabases.filter((db) => db.ownerId == createPerms.user.id);
+    const publicDbs = fetchedDatabases.filter((db) => db.ownerId != createPerms.user.id && db.visibility == "public");
+    const othersDbs = fetchedDatabases.filter((db) => db.ownerId != createPerms.user.id && db.visibility != "public");
+    const selectedDb = fetchedDatabases.find((db) => db.id == databaseId);
+    const selectedDbProvider = selectedDb ? availableServices.find((service) => service.id == selectedDb.provider) : null;
     return <div className="flex flex-col lg:flex-row flex-1 min-h-0 w-full gap-2 pt-4">
-        <form className="w-full h-full flex flex-col min-h-0">
+        <form className="w-full h-full flex flex-col min-h-0" onSubmit={async(e)=>{
+            e.preventDefault()
+            if (!name || !databaseId){
+                setSubmissionError({title: "Missing required fields", message: "Please fill in all required fields before submitting."});
+                return;
+            }
+            if (fetchedDatabases.find(db => db.name == name)){
+                return;
+            }
+            setIsSubmitting(true);
+            setSubmissionError({title: "", message: ""});
+            const response = await fetch("/api/dashboard/applications/create", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name,
+                    description: description || "No description provided.",
+                    databaseId
+                })
+            });
+            try {
+                const responseData = await response.json();
+                if (!response.ok){
+                    setIsSubmitting(false);
+                    console.log(responseData);
+                    return setSubmissionError({title: responseData.error, message: responseData.message || "An unknown error occurred while creating your application."});
+                }
+                setIsSubmitting(false);
+                toast.add({
+                    title: "Application created",
+                    description: "Your application has been created successfully.",
+                    type: "success",
+                });
+                router.push("/dashboard/applications/"+responseData.id);
+            } catch (error) {
+                setIsSubmitting(false);
+                console.log(error);
+                return setSubmissionError({title: "An unknown error occurred", message: "An unknown error occurred while creating your application."});
+            }
+        }}>
             {fetchedDatabases.length === 0 && <Link href={dbCreatePerms?.isAuthorised ? "/dashboard/admin/databases/create" : ""}>
                     <Alert variant="destructive" className={`mb-4 ${dbCreatePerms?.isAuthorised ? "cursor-pointer" : "cursor-default"}`}>
                         <OctagonAlert/>
@@ -32,6 +88,11 @@ export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createP
                     </AlertAction>}
                 </Alert>
             </Link>}
+            {submissionError.title && <Alert variant="destructive" className="mb-4">
+                <OctagonAlert/>
+                <AlertTitle>{submissionError.title}</AlertTitle>
+                <AlertDescription>{submissionError.message}</AlertDescription>
+            </Alert>}
             <div className="w-full h-full overflow-auto p-0.5 space-y-2">
                 <Card >
                     <CardHeader>
@@ -48,7 +109,7 @@ export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createP
                             <Field>
                                 <FieldLabel>Description</FieldLabel>
                                 <Input disabled={fetchedDatabases.length == 0} type="text" value={description} onChange={(e)=> setDescription(e.target.value)} placeholder="No description provided."/>
-                                <FieldDescription>Short description of what this application is used for.</FieldDescription>
+                                <FieldDescription>Short description of what this application is used for. Optional.</FieldDescription>
                             </Field>
                         </FieldGroup>
                     </CardContent>
@@ -67,27 +128,53 @@ export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createP
                                         <SelectValue/>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {fetchedDatabases.filter((base)=> base.ownerId === createPerms.user.id).length > 0 && <SelectGroup>
+                                        {personalDbs.length > 0 && <SelectGroup>
                                             <SelectLabel>Your databases</SelectLabel>
-                                            {fetchedDatabases.filter((base)=> base.ownerId === createPerms.user.id).map((base)=>{
+                                            {personalDbs.map((base)=>{
                                                 return <SelectItem key={base.id} value={base.id}>{base.name}</SelectItem>
                                             })}
                                         </SelectGroup>}
-                                        {fetchedDatabases.filter((base)=> base.visibility == "public").length > 0 && <SelectGroup>
+                                        {publicDbs.length > 0 && <SelectGroup>
                                             <SelectLabel>Public databases</SelectLabel>
-                                            {fetchedDatabases.filter((base)=> base.visibility == "public").map((base)=>{
+                                            {publicDbs.map((base)=>{
                                                 return <SelectItem key={base.id} value={base.id}>{base.name}</SelectItem>
                                             })}
                                         </SelectGroup>}
-                                        {fetchedDatabases.filter((base)=> base.ownerId !== createPerms.user.id).length > 0 && <SelectGroup>
+                                        {othersDbs.length > 0 && <SelectGroup>
                                             <SelectLabel>Others' Databases</SelectLabel>
-                                            {fetchedDatabases.filter((base)=> base.ownerId !== createPerms.user.id).map((base)=>{
+                                            {othersDbs.map((base)=>{
                                                 return <SelectItem key={base.id} value={base.id}>{base.name}</SelectItem>
                                             })}
                                         </SelectGroup>}
                                     </SelectContent>
                                 </Select>
                             </Field>
+                            {selectedDb && <Field>
+                                <FieldLabel>Database details</FieldLabel>
+                                <Item variant="outline" className="mt-3">
+                                    <ItemMedia variant="icon">
+                                        {selectedDbProvider ? <selectedDbProvider.icon className="size-6"/> : <DatabaseIcon className="size-6"/>}
+                                    </ItemMedia>
+                                    <ItemContent>
+                                        <ItemTitle>
+                                            {selectedDb.name}
+                                            <Tooltip>
+                                                <TooltipTrigger render={selectedDb.visibility == "public" ? <Eye className="size-3 text-muted-foreground"/> : <Lock className="size-3 text-muted-foreground"/>}/>
+                                                <TooltipContent>
+                                                    <p className='capitalize'>{selectedDb.visibility}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                            <Badge variant="outline" className="border px-1 py-0.5">
+                                                <User data-icon="inline-start"/>
+                                                {selectedDb.owner?.name || "Unknown user"}
+                                            </Badge>
+                                        </ItemTitle>
+                                        <ItemDescription className="mt-1">
+                                            <UsageBar files={selectedDb.files || []} limit={selectedDb.limit || 0} alerts={selectedDb.alerts}/>
+                                        </ItemDescription>
+                                    </ItemContent>
+                                </Item>
+                            </Field>}
                         </FieldGroup>
                     </CardContent>
                 </Card>

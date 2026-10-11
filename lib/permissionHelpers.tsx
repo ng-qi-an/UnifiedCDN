@@ -53,10 +53,10 @@ export function verifyUser<C extends { params: Promise<unknown> }>(handler: (req
     }
 }
 
-export function verifyUserWithPermission<C extends { params: Promise<unknown> }>(permissions: Record<string, string[]>, handler: (req: NextRequest, ctx: C, user: User)=> Promise<Response>){
+export function verifyUserWithPermission<C extends { params: Promise<unknown> }>(permissionCheck: (user: User) => Promise<boolean>, handler: (req: NextRequest, ctx: C, user: User)=> Promise<Response>){
     return verifyUser(async(req, ctx: C, user: User)=>{
-        const data = await userHasPermissionServer(permissions, user);
-        if (!data.isAuthorised) {
+        const hasPermission = await permissionCheck(user);
+        if (!hasPermission) {
             return errorToResponse(new InsufficientPermissionsError());
         }
         return handler(req, ctx, user);

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { verifyUserWithPermission } from "@/lib/permissionHelpers";
+import { userHasPermissionServer, verifyUserWithPermission } from "@/lib/permissionHelpers";
 import { HCDNAuthenticationError } from "@/lib/providers/hcdn/errors";
 import { getHCDNClient } from "@/lib/providers/hcdn/getClient";
 import { getS3Client } from "@/lib/providers/s3/getClient";
@@ -7,7 +7,9 @@ import { databases } from "@/lib/schema/schema";
 import { AccessDenied, CreateBucketCommand, ListBucketsCommand } from "@aws-sdk/client-s3";
 import { generateId } from "better-auth";
 
-export const POST = verifyUserWithPermission({databases: ["create"]}, async(req: Request, ctx, user) => {
+export const POST = verifyUserWithPermission(async(user)=>{
+    return (await userHasPermissionServer({database: ['create']}, user)).isAuthorised;
+}, async(req: Request, ctx, user) => {
     const data = await req.json();
     const requiredKeys = ["provider", "keys", "name", "limit", "usageAlert", "visibility"]
     if (requiredKeys.filter(key => !Object.keys(data).includes(key)).length > 0) {
@@ -69,7 +71,7 @@ export const POST = verifyUserWithPermission({databases: ["create"]}, async(req:
             }
         }
     } else {
-        return Response.json({ error: "UNSUPPORTED_PROVIDER", message: "This provider isn't supported by " }, { status: 400 });
+        return Response.json({ error: "UNSUPPORTED_PROVIDER", message: "This provider isn't supported." }, { status: 400 });
     }
     const payload: typeof databases.$inferInsert = {
         id: generateId(16),

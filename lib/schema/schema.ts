@@ -26,3 +26,16 @@ export const applications = pgTable("applications", {
     createdAt: date("created_at").defaultNow().notNull(),
     updatedAt: date("updated_at").defaultNow().notNull(),
 })
+
+export const files = pgTable("files", {
+    id: text("id").primaryKey(),
+    applicationId: text("application_id").notNull(),
+    databaseId: text("database_id").notNull(),
+    key: text("key").notNull(),
+    name: text("name").notNull(),
+    contentType: text("content_type").notNull(),
+    size: numeric("size", { mode: 'number' }).notNull(),
+    expiresAt: date("expires_at"),
+    createdAt: date("created_at").defaultNow().notNull(),
+    updatedAt: date("updated_at").defaultNow().notNull(),
+})

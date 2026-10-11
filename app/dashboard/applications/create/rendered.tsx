@@ -13,8 +13,29 @@ export default async function CreateApplicationsRendered(){
     if (!createPerms.isAuthorised && !requestPerms.isAuthorised) {
         return redirect("/dashboard/applications", "replace");
     }
-    const fetchedDatabases = await db.select({id: databases.id, name: databases.name, ownerId: databases.ownerId, provider: databases.provider, visibility: databases.visibility}).from(databases).where(!viewAllDbPerms.isAuthorised ? or(eq(databases.visibility, "public"), eq(databases.ownerId, createPerms.user.id)) : undefined);
-    console.log("fetchedDatabases", fetchedDatabases);
+    const fetchedDatabases = await db.query.databases.findMany({
+        with: {
+            owner: {
+                columns: {
+                    name: true,
+                }
+            },
+            files: {
+                columns: {
+                    size: true
+                }
+            }
+        },
+        columns: {
+            keys: false
+        },
+        where: {
+            OR: [
+                {ownerId: !viewAllDbPerms.isAuthorised ? viewAllDbPerms.user.id : {isNotNull: true}},
+                {visibility: "public"}
+            ]
+        }
+    })
     let dbCreatePerms;
     if (fetchedDatabases.length < 1) {
         dbCreatePerms = await userHasPermissionServer({databases: ["create"]}, createPerms.user as User);
