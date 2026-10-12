@@ -9,7 +9,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import DashboardViewLayoutSwitch from "@/components/navigation/DashboardViewLayoutSwitch";
 
-export default function ApplicationsPage(){
+export default function ApplicationsPage({searchParams}: {searchParams: Promise<{layout?: string | undefined}>}){
     return <Dashboard>
         <DashboardHeader breadcrumbs={[{name: "Applications", href: "/dashboard/applications"}]}/>
         <DashboardBody>
@@ -18,7 +18,7 @@ export default function ApplicationsPage(){
                 <Button size="sm" className="h-10" nativeButton={false} render={<Link href="/dashboard/applications/create"/>}><Plus/><span>Create</span><span className="md:block hidden">New</span></Button>
                 </>}/>
             <Suspense>
-                <ApplicationsRendered/>
+                <ApplicationsRendered searchParams={searchParams}/>
             </Suspense>
         </DashboardBody>
     </Dashboard>
