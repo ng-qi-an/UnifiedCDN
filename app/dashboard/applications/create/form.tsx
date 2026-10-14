@@ -161,7 +161,7 @@ export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createP
                                             <Tooltip>
                                                 <TooltipTrigger render={selectedDb.visibility == "public" ? <Eye className="size-3 text-muted-foreground"/> : <Lock className="size-3 text-muted-foreground"/>}/>
                                                 <TooltipContent>
-                                                    <p className='capitalize'>{selectedDb.visibility}</p>
+                                                    <span className='capitalize'>{selectedDb.visibility}</span>
                                                 </TooltipContent>
                                             </Tooltip>
                                             <Badge variant="outline" className="border px-1 py-0.5">
@@ -169,9 +169,9 @@ export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createP
                                                 {selectedDb.owner?.name || "Unknown user"}
                                             </Badge>
                                         </ItemTitle>
-                                        <ItemDescription className="mt-1">
+                                        <div className="mt-1">
                                             <UsageBar files={selectedDb.files || []} limit={selectedDb.limit || 0} alerts={selectedDb.alerts}/>
-                                        </ItemDescription>
+                                        </div>
                                     </ItemContent>
                                 </Item>
                             </Field>}

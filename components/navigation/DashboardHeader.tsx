@@ -4,8 +4,9 @@ import { Fragment } from "react/jsx-runtime";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "../ui/breadcrumb";
 import { SidebarTrigger } from "../ui/sidebar";
 import Link from "next/link";
+import { ReactNode } from "react";
 
-export default function DashboardHeader({breadcrumbs, actionRender}: {breadcrumbs: {name?: string, href?: string, component?: string}[], actionRender?: React.ReactNode}){
+export default function DashboardHeader({breadcrumbs, actionRender}: {breadcrumbs: {name?: string, href?: string, component?: ReactNode}[], actionRender?: ReactNode}){
     return <div className="flex items-center h-12 w-full border-b px-2">
         <SidebarTrigger/>
         <Breadcrumb className="ml-2">

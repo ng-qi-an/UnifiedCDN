@@ -54,7 +54,7 @@ export default function ApplicationItem({app, index, layout, length, showUserAnd
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <Button size="sm" variant="secondary" className={"bg-transparent w-9 sm:w-auto sm:bg-secondary"} nativeButton={false} render={<Link href={`/dashboard/admin/databases/${app.id}`}/>}><span className="hidden sm:block">View</span> <ChevronRight/></Button>
+            <Button size="sm" variant="secondary" className={"bg-transparent w-9 sm:w-auto sm:bg-secondary"} nativeButton={false} render={<Link href={`/dashboard/applications/${app.id}`}/>}><span className="hidden sm:block">View</span> <ChevronRight/></Button>
         </div>
     </div>
 }
