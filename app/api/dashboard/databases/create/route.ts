@@ -8,7 +8,7 @@ import { AccessDenied, CreateBucketCommand, ListBucketsCommand } from "@aws-sdk/
 import { generateId } from "better-auth";
 
 export const POST = verifyUserWithPermission(async(user)=>{
-    return (await userHasPermissionServer({database: ['create']}, user)).isAuthorised;
+    return (await userHasPermissionServer({databases: ['create']}, user)).isAuthorised;
 }, async(req: Request, ctx, user) => {
     const data = await req.json();
     const requiredKeys = ["provider", "keys", "name", "limit", "usageAlert", "visibility"]

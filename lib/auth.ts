@@ -4,6 +4,7 @@ import { db } from "./db";
 import { admin } from "better-auth/plugins"
 import * as schema from "./schema/auth-schema";
 import { ac, adminRole, superAdminRole, userRole, viewOnlyRole } from "./permissions";
+import { apiKey } from "@better-auth/api-key";
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
@@ -28,6 +29,7 @@ export const auth = betterAuth({
                 user: userRole,
                 viewOnly: viewOnlyRole
             }
-        })
+        }),
+        apiKey()
     ]
 });

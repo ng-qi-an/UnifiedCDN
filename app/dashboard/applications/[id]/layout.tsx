@@ -6,6 +6,10 @@ import { db } from "@/lib/db";
 import { userHasPermissionServer } from "@/lib/permissionHelpers";
 import { redirect } from "next/navigation";
 import AppSwitcher from "./AppSwitcher";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ApplicationTabs from "./ApplicationTabs";
+import { Button } from "@/components/ui/button";
+import { Ellipsis } from "lucide-react";
 
 export const instant = false;
 
@@ -35,7 +39,8 @@ export default async function ApplicationPage({params, children}: {params: Promi
             <AppSwitcher key={appData.id} otherApps={transformedOtherApps} appId={appData.id} appName={appData.name}/>
         </div>}]}/>
         <DashboardBody>
-            <DashboardSectionHeader title={`Manage "${appData.name}"`} description={appData.description}/>
+            <DashboardSectionHeader title={`${appData.name}`} description={appData.description} actionRender={<Button size="icon-sm" variant="ghost"><Ellipsis/></Button>}/>
+            <ApplicationTabs appId={appData.id}/>
             {children}
         </DashboardBody>
     </Dashboard>
