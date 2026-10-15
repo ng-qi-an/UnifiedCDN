@@ -14,6 +14,14 @@ export class UnauthorisedError extends CustomHttpError  {
     }
 }
 
+export class NotFoundError extends CustomHttpError  {
+    readonly status_code = 404
+    constructor(message = "The requested resource was not found.") {
+        super(message)
+        this.name = 'NotFoundError'
+    }
+}
+
 export class InsufficientPermissionsError extends CustomHttpError  {
     readonly status_code = 403;
     constructor(message = "You do not have the permissions to perform this action.") {
@@ -22,3 +30,10 @@ export class InsufficientPermissionsError extends CustomHttpError  {
     }
 }
 
+export class InvalidConfigurationError extends CustomHttpError  {
+    readonly status_code = 400
+    constructor(message = "The configuration provided is invalid.") {
+        super(message)
+        this.name = 'InvalidConfigurationError'
+    }
+}

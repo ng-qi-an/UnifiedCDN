@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function AppSwitcher({otherApps, appId, appName}: {otherApps: {label: string, value: string}[], appId: string, appName: string}){
     const router = useRouter();
-    return <Combobox autoHighlight items={otherApps} defaultValue={appId} onValueChange={(val)=>{
+    return <Combobox autoHighlight items={otherApps} value={appId} onValueChange={(val)=>{
         if (val != appId) {
             router.push(`/dashboard/applications/${val}`);
         }

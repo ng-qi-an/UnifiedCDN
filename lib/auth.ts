@@ -30,6 +30,15 @@ export const auth = betterAuth({
                 viewOnly: viewOnlyRole
             }
         }),
-        apiKey()
+        apiKey([
+            {
+                configId: "default",
+                defaultPrefix: "uni_",
+                keyExpiration: {
+                    minExpiresIn: 0,
+                },
+                enableMetadata: true,
+            }
+        ])
     ]
 });

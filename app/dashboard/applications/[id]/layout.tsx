@@ -36,7 +36,7 @@ export default async function ApplicationPage({params, children}: {params: Promi
     const transformedOtherApps = otherApps.map((app)=> ({label: app.name, value: app.id}))
     return <Dashboard>
         <DashboardHeader breadcrumbs={[{name: "Applications", href: "/dashboard/applications"}, {component: <div className="flex items-center">
-            <AppSwitcher key={appData.id} otherApps={transformedOtherApps} appId={appData.id} appName={appData.name}/>
+            <AppSwitcher otherApps={transformedOtherApps} appId={appData.id} appName={appData.name}/>
         </div>}]}/>
         <DashboardBody>
             <DashboardSectionHeader title={`${appData.name}`} description={appData.description} actionRender={<Button size="icon-sm" variant="ghost"><Ellipsis/></Button>}/>
