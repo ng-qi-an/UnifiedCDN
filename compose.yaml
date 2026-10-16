@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: nextjs-standalone-image
+    image: ${DOCKER_IMAGE_NAME:?DOCKER_IMAGE_NAME is required. Provide a valid image name or uri.}
     environment:
       NODE_ENV: production
       PORT: "3000"
