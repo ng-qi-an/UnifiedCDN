@@ -5,6 +5,7 @@ import { User } from "./schema/schemaTypes";
 import { CustomHttpError, InsufficientPermissionsError, UnauthorisedError } from "./errors";
 import { NextRequest } from "next/server";
 import { unstable_rethrow } from "next/navigation";
+import { ApiKey } from '@better-auth/api-key';
 
 export async function getUser(){
     const session = await auth.api.getSession({
@@ -61,4 +62,32 @@ export function verifyUserWithPermission<C extends { params: Promise<unknown> }>
         }
         return handler(req, ctx, user);
     })
+}
+
+export function verifyAPIKey<C extends { params: Promise<unknown> }>(handler: (req: NextRequest, ctx: C, apiKey: ApiKey)=> Promise<Response>){
+    return async(req: NextRequest, ctx: C)=>{
+        let user: User;
+        const _headers = await headers();
+        if (!_headers.has("Authorization")){
+            return errorToResponse(new UnauthorisedError());
+        }
+        const key = _headers.get("Authorization")?.split(" ")[1];
+        if (!key) {
+            return errorToResponse(new UnauthorisedError());
+        }
+        try {
+            const data = await auth.api.verifyApiKey({
+                body: {
+                    key: key
+                },
+            });
+            if (!data.valid || !data.key) {
+                return errorToResponse(new UnauthorisedError());
+            }
+            const finalKey = {...data.key, key: key};
+            return handler(req, ctx, finalKey);
+        } catch (error) {
+            return errorToResponse(error);
+        }
+    }
 }

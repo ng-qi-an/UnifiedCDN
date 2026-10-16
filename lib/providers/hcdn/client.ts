@@ -1,4 +1,5 @@
 import { testConnection } from "./testConnection";
+import { uploadFiles } from "./uploadFiles";
 
 export class HCDNClient {
     constructor (private readonly apiKey: string, private readonly baseUrl: string = "https://cdn.hackclub.com/api/v4") {}
@@ -14,5 +15,8 @@ export class HCDNClient {
     }
     async testConnection(){
         return testConnection(this);
+    }
+    async uploadFiles(files: File[]) {
+        return uploadFiles(this, files);
     }
 }
