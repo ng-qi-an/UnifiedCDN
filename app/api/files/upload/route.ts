@@ -1,13 +1,13 @@
 import { db } from "@/lib/db";
 import { InvalidConfigurationError, UnauthorisedError } from "@/lib/errors";
-import { errorToResponse, userHasPermissionServer, verifyAPIKey, verifyAPIKeyOrUser } from "@/lib/permissionHelpers";
+import { errorToResponse, userHasPermissionServer, verifyAPIKeyOrUser } from "@/lib/permissionHelpers";
 import { HCDNClient } from "@/lib/providers/hcdn/client";
 import { HCDNAuthenticationError } from "@/lib/providers/hcdn/errors";
 import { convertUnit } from "@/lib/unitConverter";
 import { files as filesDb } from "@/lib/schema/schema";
 import { generateId } from "better-auth";
 import { getS3Client } from "@/lib/providers/s3/getClient";
-import { AccessDenied, PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { isCredentialError } from "@/lib/providers/s3/isCredentialError";
 import { Application } from "@/lib/schema/schemaTypes";
 
@@ -91,7 +91,7 @@ export const POST = verifyAPIKeyOrUser(async (req, ctx, apiKey, user) => {
                     id: generateId(16),
                     applicationId: appData.id,
                     databaseId: appData.database!.id,
-                    key: fileKey,
+                    key: `unified-cdn/${fileKey}`,
                     name: file.name,
                     contentType: file.type,
                     size: file.size

@@ -3,7 +3,7 @@ import { adminAc, defaultStatements, userAc } from "better-auth/plugins/admin/ac
 
 const statement = { 
     ...defaultStatements,
-    applications: ["request", "create", "update", "delete", "viewAll"], 
+    applications: ["request", "create", "update", "delete", "viewAll", "reviewRequests"], 
     databases: ["create", "update", "delete", "viewAll", "share"],
 } as const; 
 
@@ -20,7 +20,7 @@ export const userRole = ac.newRole({
 
 export const adminRole = ac.newRole({
     ...adminAc.statements,
-    applications: [...userRole.statements.applications, "create", "viewAll"],
+    applications: [...userRole.statements.applications, "create", "viewAll", "reviewRequests"],
     databases: ["create", "update", "delete"]
 })
 

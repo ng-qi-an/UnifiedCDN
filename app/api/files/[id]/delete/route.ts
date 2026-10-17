@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { InvalidConfigurationError, NotFoundError, UnauthorisedError } from "@/lib/errors";
-import { errorToResponse, userHasPermissionServer, verifyAPIKey, verifyAPIKeyOrUser } from "@/lib/permissionHelpers";
+import { errorToResponse, userHasPermissionServer, verifyAPIKeyOrUser } from "@/lib/permissionHelpers";
 import { HCDNClient } from "@/lib/providers/hcdn/client";
 import { HCDNAuthenticationError } from "@/lib/providers/hcdn/errors";
 import { getS3Client } from "@/lib/providers/s3/getClient";
@@ -42,7 +42,7 @@ export const DELETE = verifyAPIKeyOrUser(async (req, ctx: { params: Promise<{ id
         } else if (file.database?.provider == "cloudflare-r2" || file.database?.provider == "amazon-s3") {
             const client = getS3Client(file.database.keys.accessUrl, file.database.keys.accessKeyId, file.database.keys.secretAccessKey);
             try {
-                await client.send(new DeleteObjectCommand({
+                const response = await client.send(new DeleteObjectCommand({
                     Bucket: file.database.keys.bucketName,
                     Key: file.key
                 }));
