@@ -18,7 +18,7 @@ export const POST = verifyUserWithPermission(async(user)=>{
     }
     const provider = data.provider;
     const keys = data.keys;
-    if (provider == "cloudflare-r2"){
+    if (provider == "cloudflare-r2" || provider == "amazon-s3") {
         if (!keys.accessUrl || !keys.accessKeyId || !keys.secretAccessKey || !keys.bucketName) {
             return Response.json({ error: "INVALID_CONFIGURATION", message: "Access URL, access key ID, secret access key and bucketName are required" }, { status: 400 });
         }
@@ -31,6 +31,7 @@ export const POST = verifyUserWithPermission(async(user)=>{
             if (!r.Buckets.find(b => b.Name == keys.bucketName)) {
                 try {
                     const createR = await client.send(new CreateBucketCommand({ Bucket: keys.bucketName }));
+                    console.log("Create bucket response:", createR);
                     if (createR.$metadata.httpStatusCode != 200){
                         return Response.json({ error: "INTERNAL", message: "Something went wrong creating your bucket. Create a bucket manually instead." }, { status: 500 });
                     }
@@ -39,7 +40,11 @@ export const POST = verifyUserWithPermission(async(user)=>{
                     if (error instanceof AccessDenied){
                         return Response.json({ error: "INVALID_CONFIGURATION", message: "This key has no permission to create buckets. Update the key's permissions, or create the bucket on your own." }, { status: 401 });
                     }
+                    if (error instanceof Error && (error.name == "InvalidBucketName")) {
+                        return Response.json({ error: "INVALID_CONFIGURATION", message: "The bucket name you provided is invalid. Bucket names must be between 3 and 63 characters long, and can only contain lowercase letters, numbers, and hyphens." }, { status: 400 });
+                    }
                     console.error(error);
+                    return Response.json({ error: "INTERNAL", message: "Unexpected error occurred while creating bucket."}, {status: 500});
                 }
             }
             // Bucket found already, so continue to the end of the big if

@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createPerms, requestPerms}: {dbCreatePerms?: any, fetchedDatabases: Partial<Database & {owner: {name: string} | null, files: {size: number}[] | null}>[], createPerms: any, requestPerms: any}){
+export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, fetchedApps, createPerms, requestPerms}: {dbCreatePerms?: any, fetchedDatabases: Partial<Database & {owner: {name: string} | null, files: {size: number}[] | null}>[], fetchedApps: {name: string}[], createPerms: any, requestPerms: any}){
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [databaseId, setDatabaseId] = useState("");
@@ -104,7 +104,7 @@ export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createP
                             <Field>
                                 <FieldLabel>Name</FieldLabel>
                                 <Input required disabled={fetchedDatabases.length == 0} type="text" value={name} onChange={(e)=> setName(e.target.value)}/>
-                                <FieldDescription>The name of your application. Must be unique.</FieldDescription>
+                                {fetchedApps.find((app)=> app.name == name) ? <FieldError>A application with this name already exists.</FieldError> : <FieldDescription>The name of your application. Must be unique.</FieldDescription>}
                             </Field>
                             <Field>
                                 <FieldLabel>Description</FieldLabel>
@@ -185,7 +185,7 @@ export function CreateApplicationsForm({dbCreatePerms, fetchedDatabases, createP
                         Cancel
                     </Button>
                 </Link>
-                <Button className="w-full" type="submit">
+                <Button disabled={isSubmitting} className="w-full" type="submit">
                     {createPerms.isAuthorised ? "Create Application" : "Request Application"}
                 </Button>
             </div>

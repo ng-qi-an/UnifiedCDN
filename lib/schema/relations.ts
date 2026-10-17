@@ -3,6 +3,16 @@ import { applications, databases, files } from "./schema";
 import { user } from "./auth-schema";
 
 export const relations = defineRelationsPart({ applications, user, files, databases }, (r) => ({
+    files: {
+        database: r.one.databases({
+            from: r.files.databaseId,
+            to: r.databases.id
+        }),
+        applications: r.one.applications({
+            from: r.files.applicationId,
+            to: r.applications.id
+        })
+    },
     databases: {
         owner: r.one.user({
             from: r.databases.ownerId,
@@ -25,14 +35,4 @@ export const relations = defineRelationsPart({ applications, user, files, databa
     user: {
         applications: r.many.applications()
     },
-    files: {
-        database: r.one.databases({
-            from: r.files.databaseId,
-            to: r.databases.id
-        }),
-        applications: r.one.applications({
-            from: r.files.applicationId,
-            to: r.applications.id
-        })
-    }
 }))

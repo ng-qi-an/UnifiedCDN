@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { userHasPermissionServer } from "@/lib/permissionHelpers";
-import { databases } from "@/lib/schema/schema";
+import { applications, databases } from "@/lib/schema/schema";
 import { eq, or } from "drizzle-orm";
 import { CreateApplicationsForm } from "./form";
 import { User } from "@/lib/schema/schemaTypes";
@@ -40,5 +40,6 @@ export default async function CreateApplicationsRendered(){
     if (fetchedDatabases.length < 1) {
         dbCreatePerms = await userHasPermissionServer({databases: ["create"]}, createPerms.user as User);
     }
-    return <CreateApplicationsForm dbCreatePerms={dbCreatePerms} fetchedDatabases={fetchedDatabases} createPerms={createPerms} requestPerms={requestPerms}/>;
+    const fetchedApps = await db.select({name: applications.name}).from(applications)
+    return <CreateApplicationsForm fetchedApps={fetchedApps} dbCreatePerms={dbCreatePerms} fetchedDatabases={fetchedDatabases} createPerms={createPerms} requestPerms={requestPerms}/>;
 }

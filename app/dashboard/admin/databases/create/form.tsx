@@ -32,6 +32,8 @@ export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDat
     const [secretAccessKey, setSecretAccessKey] = useState("");
     const [accessUrl, setAccessUrl] = useState("");
     const [bucketName, setBucketName] = useState("");
+    const s3BucketNameRegex = /^(?!\d{1,3}(?:\.\d{1,3}){3}$)(?!.*\.\.)(?!.*\.-)(?!.*-\. )[a-z0-9](?:[a-z0-9.-]{1,61}[a-z0-9])$/
+    const isS3BucketNameValid = s3BucketNameRegex.test(bucketName) && bucketName.length >= 3 && bucketName.length <= 63;
     // submiting states
     const [isSubmitting, setIsSubmitting] = useState(false); 
     const [submissionError, setSubmissionError] = useState({title: "", message: ""});
@@ -43,8 +45,8 @@ export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDat
         </Alert>}
         <form className="w-full h-full flex flex-col min-h-0" onSubmit={async(e)=>{
             e.preventDefault()
-            if (!name || !limit || !limitUnit || !usageAlert || !visibility || !provider || (provider == "cloudflare-r2" && (!accessUrl || !accessKeyId || !secretAccessKey || !bucketName)) || (provider == "hackclub-cdn" && !apiKey)){
-                setSubmissionError({title: "Missing required fields", message: "Please fill in all required fields before submitting."});
+            if (!name || !limit || !limitUnit || !usageAlert || !visibility || !provider || (provider == "cloudflare-r2" && (!accessUrl || !accessKeyId || !secretAccessKey || !bucketName || !isS3BucketNameValid)) || (provider == "hackclub-cdn" && !apiKey)){
+                setSubmissionError({title: "Required fields missing or invalid", message: "Please fill in all required fields and ensure there are no warnings before submitting."});
                 return;
             }
             if (fetchedDatabases.find(db => db.name == name)){
@@ -177,7 +179,9 @@ export function CreateDatabasesForm({fetchedDatabases, createPerms}: {fetchedDat
                                     <Field>
                                         <FieldLabel>Bucket Name</FieldLabel>
                                         <Input type="text" value={bucketName} onChange={(e)=> setBucketName(e.target.value)} required/>
-                                        <FieldDescription>The bucket you want to use. We'll create one if it doesn't exist.</FieldDescription>
+                                        {!bucketName || isS3BucketNameValid ?
+                                            <FieldDescription>The bucket you want to use. We'll create one if it doesn't exist.</FieldDescription>
+                                        : <FieldError>Bucket names must be between 3 and 63 characters long, and can only contain lowercase letters, numbers, and hyphens.</FieldError>}
                                     </Field>
                                 </> : provider == "hackclub-cdn" && <>
                                     <Field>
