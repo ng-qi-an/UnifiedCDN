@@ -91,3 +91,17 @@ export function verifyAPIKey<C extends { params: Promise<unknown> }>(handler: (r
         }
     }
 }
+
+export function verifyAPIKeyOrUser<C extends { params: Promise<unknown> }>(handler: (req: NextRequest, ctx: C, apiKey?: ApiKey, user?: User)=> Promise<Response>){
+    return async(req: NextRequest, ctx: C)=>{
+        if (req.headers.has("Authorization")){
+            return verifyAPIKey((request, context, apiKey) =>
+                handler(request, ctx, apiKey, undefined)
+            )(req, ctx);
+        } else {
+            return verifyUser((request, context, user) =>
+                handler(request, ctx, undefined, user)
+            )(req, ctx);
+        }
+    }
+}

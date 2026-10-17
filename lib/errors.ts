@@ -32,7 +32,7 @@ export class InsufficientPermissionsError extends CustomHttpError  {
 
 export class InvalidConfigurationError extends CustomHttpError  {
     readonly status_code = 400
-    constructor(message = "The configuration provided is invalid.") {
+    constructor(message = "The configuration provided is invalid or missing.") {
         super(message)
         this.name = 'InvalidConfigurationError'
     }

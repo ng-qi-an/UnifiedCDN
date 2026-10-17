@@ -14,7 +14,7 @@ export default async function Layout({children}: {children: React.ReactNode}) {
         return <div className="flex h-full">
             <SidebarProvider>
                 <DashboardSidebar/>
-                <main className="w-full h-screen">
+                <main className="min-w-0 w-full h-screen">
                     {children} 
                 </main>
             </SidebarProvider>

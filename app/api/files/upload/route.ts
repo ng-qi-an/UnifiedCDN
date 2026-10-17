@@ -1,21 +1,24 @@
 import { db } from "@/lib/db";
 import { InvalidConfigurationError, UnauthorisedError } from "@/lib/errors";
-import { errorToResponse, verifyAPIKey } from "@/lib/permissionHelpers";
+import { errorToResponse, userHasPermissionServer, verifyAPIKey, verifyAPIKeyOrUser } from "@/lib/permissionHelpers";
 import { HCDNClient } from "@/lib/providers/hcdn/client";
 import { HCDNAuthenticationError } from "@/lib/providers/hcdn/errors";
 import { convertUnit } from "@/lib/unitConverter";
 import { files as filesDb } from "@/lib/schema/schema";
 import { generateId } from "better-auth";
 import { getS3Client } from "@/lib/providers/s3/getClient";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { AccessDenied, PutObjectCommand } from "@aws-sdk/client-s3";
+import { isCredentialError } from "@/lib/providers/s3/isCredentialError";
+import { Application } from "@/lib/schema/schemaTypes";
 
 const maxFileSize = convertUnit(0.5, "gb", "b"); // 0.5 GB in bytes
 const maxFiles = 20; // Maximum number of files allowed
 
-export const POST = verifyAPIKey(async (req, ctx, apiKey) => {
+export const POST = verifyAPIKeyOrUser(async (req, ctx, apiKey, user) => {
     try {
         const formData = await req.formData();
         const files = formData.getAll("files") as File[];
+        console.log("files to upload:", files.length)
         if (files.length === 0) {
             return errorToResponse(new InvalidConfigurationError());
         }
@@ -25,10 +28,17 @@ export const POST = verifyAPIKey(async (req, ctx, apiKey) => {
         if (files.some(file => file.size > maxFileSize)) {
             return errorToResponse(new InvalidConfigurationError("One or more files exceed the maximum allowed size of 1 GB."));
         }
-        console.log("Key meta", apiKey.metadata)
-        const appData = await db.query.applications.findFirst({where: {id: apiKey.metadata?.appId}, with: {database: {columns: {provider: true, id: true, keys: true}}}, columns: {id: true}});
+        let appData: Pick<Application, "id"> & { database: { provider: string, id: string, keys: any | undefined } | null } | null = null;
+        if (apiKey){
+            appData = await db.query.applications.findFirst({where: {id: apiKey.metadata?.appId}, with: {database: {columns: {provider: true, id: true, keys: true}}}, columns: {id: true}}) ?? null;
+        } else if (user){
+            if (!formData.get("appId")){
+                return errorToResponse(new InvalidConfigurationError("Missing appId in form data."));
+            }
+            const viewAllPerms = await userHasPermissionServer({applications: ['viewAll']}, user);
+            appData = await db.query.applications.findFirst({where: {id: formData.get("appId") as string, ownerId: !viewAllPerms.isAuthorised ? user.id : {isNotNull: true}}, with: {database: {columns: {provider: true, id: true, keys: true}}}, columns: {id: true}}) ?? null;
+        }
         if (!appData) {
-            console.log("App data not found for API key:", apiKey.metadata?.appId);
             return errorToResponse(new UnauthorisedError());
         }
         if (appData.database?.provider == "hackclub-cdn"){
@@ -48,7 +58,7 @@ export const POST = verifyAPIKey(async (req, ctx, apiKey) => {
                 return Response.json({uploads: normalisedUploads, failed});
             } catch (error) {
                 if (error instanceof HCDNAuthenticationError){
-                    return errorToResponse(new UnauthorisedError());
+                    return errorToResponse(new UnauthorisedError("Could not connect to database provider. Please check your database key configurations."));
                 } else {
                     console.error("Error uploading files to HCDN:", error);
                     return errorToResponse(error);
@@ -69,7 +79,9 @@ export const POST = verifyAPIKey(async (req, ctx, apiKey) => {
                     }));
                 } catch (error) {
                     console.log("Error uploading file to S3:", error);
-                    if (error instanceof Error) {
+                    if (isCredentialError(error)){
+                        return failedFiles.push({filename: file.name, reason: "Access denied. Please check your S3 credentials and permissions."});
+                    } else if (error instanceof Error) {
                         return failedFiles.push({filename: file.name, reason: error.message});
                     } else {
                         return failedFiles.push({filename: file.name, reason: 'Unknown error'});

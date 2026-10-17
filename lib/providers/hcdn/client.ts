@@ -1,3 +1,5 @@
+import { deleteFile } from "./deleteFile";
+import { renameFile } from "./renameFile";
 import { testConnection } from "./testConnection";
 import { uploadFiles } from "./uploadFiles";
 
@@ -18,5 +20,11 @@ export class HCDNClient {
     }
     async uploadFiles(files: File[]) {
         return uploadFiles(this, files);
+    }
+    async renameFile(fileId: string, newName: string) {
+        return renameFile(this, fileId, newName);
+    }
+    async deleteFile(fileId: string) {
+        return deleteFile(this, fileId);
     }
 }

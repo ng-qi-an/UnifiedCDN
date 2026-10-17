@@ -41,7 +41,9 @@ export default async function ApplicationPage({params, children}: {params: Promi
         <DashboardBody>
             <DashboardSectionHeader title={`${appData.name}`} description={appData.description} actionRender={<Button size="icon-sm" variant="ghost"><Ellipsis/></Button>}/>
             <ApplicationTabs appId={appData.id}/>
-            {children}
+            <div className="h-full overflow-hidden">
+                {children}
+            </div>
         </DashboardBody>
     </Dashboard>
 }
